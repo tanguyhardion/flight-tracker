@@ -112,7 +112,6 @@ class FlightTracker:
                         f"  - Flight {call_sign} (ID: {flight_id}): {origin} → {destination}"
                     )
 
-        print(flight_report)
         if total_flights > 0:
             self.send_email_notification(flight_report, total_flights, flight_details)
         else:

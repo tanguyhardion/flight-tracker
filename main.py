@@ -10,10 +10,53 @@ class FlightTracker:
     def __init__(self):
         self.fr_api = FlightRadar24API()
         self.airports = {
-            "Israel": ["TLV", "SDV", "HFA"],
-            "Iran": ["IKA", "MHD", "SYZ"],
-            "Iceland": ["KEF", "RKV"],
-            "France": ["CDG", "ORY", "LYS"],
+            "Iraq": [
+                "BGW",  # Baghdad International
+                "BSR",  # Basra International
+                "ESB",  # Erbil International
+                "ISU",  # Sulaymaniyah International
+                "NJF",  # Najaf International
+                "OSM",  # Mosul International
+                "KIK",  # Kirkuk Air Base
+                "TQD",  # Al Taqaddum Air Base
+            ],
+            "Iran": [
+                "IKA",  # Tehran Imam Khomeini International
+                "THR",  # Tehran Mehrabad International
+                "MHD",  # Mashhad International
+                "SYZ",  # Shiraz International
+                "IFN",  # Isfahan International
+                "TBZ",  # Tabriz International
+                "AWZ",  # Ahvaz International
+                "BND",  # Bandar Abbas International
+                "ABD",  # Abadan Airport
+                "KER",  # Kerman Airport
+                "GSM",  # Qasem Soleimani International (Gheshm)
+                "RAS",  # Rasht Airport
+                "SRY",  # Sari Airport
+                "ZBR",  # Chabahar Airport
+                "ZAH",  # Zahedan International
+            ],
+            "Israel": [
+                "TLV",  # Ben Gurion International (Tel Aviv)
+                "HFA",  # Haifa Airport
+                "ETH",  # Eilat Airport
+                "ETM",  # Ramon Airport (Eilat)
+                "RPN",  # Rosh Pina Airport
+                "MSR",  # Tel Nov Air Base (if tracking military)
+            ],
+            "Qatar": [
+                "DOH",  # Hamad International Airport (Doha)
+                "XJD",  # Al Udeid Air Base (if tracking military)
+            ],
+            "Kuwait": [
+                "KWI",  # Kuwait International Airport
+                "KAC",  # Kuwait Air Base (Ali Al Salem)
+            ],
+            "Bahrain": [
+                "BAH",  # Bahrain International Airport
+                "NAS",  # Naval Air Station Bahrain (if tracking military)
+            ],
         }
 
     def get_flights_to_country(self, country):
@@ -84,9 +127,7 @@ class FlightTracker:
             recipient_email = os.getenv("RECIPIENT_EMAIL")
 
             if not sender_email or not sender_password or not recipient_email:
-                print(
-                    "Email credentials missing - skipping email notification"
-                )
+                print("Email credentials missing - skipping email notification")
                 print(
                     "Required: OUTLOOK_EMAIL, OUTLOOK_PASSWORD and RECIPIENT_EMAIL environment variables"
                 )
@@ -105,7 +146,7 @@ class FlightTracker:
             # Build flight list with hyperlinks
             flight_html_list = []
             current_country = None
-            
+
             for detail in flight_details:
                 if current_country != detail["country"]:
                     current_country = detail["country"]

@@ -4,7 +4,7 @@ This project automatically tracks flights to specific airports and sends email n
 
 ## Features
 
-- Tracks flights to airports in Israel, Iran, Iceland, and France
+- Tracks flights to airports anywhere in the world
 - Runs automatically every 10 minutes via GitHub Actions
 - Sends email notifications only when flights are detected (no spam when flight count is 0)
 - Includes flight details in email notifications
@@ -42,17 +42,6 @@ Add these secrets:
 - The workflow runs every 10 minutes automatically
 - You can also trigger it manually by going to Actions → Flight Tracker → Run workflow
 - Check the Actions tab to see run logs and debug any issues
-
-## Tracked Airports
-
-Currently tracking flights to:
-
-- **Israel**: TLV (Tel Aviv), SDV (Sde Dov), HFA (Haifa)
-- **Iran**: IKA (Tehran), MHD (Mashhad), SYZ (Shiraz)
-- **Iceland**: KEF (Keflavik), RKV (Reykjavik)
-- **France**: CDG (Charles de Gaulle), ORY (Orly), LYS (Lyon)
-
-To modify the tracked airports, edit the `airports` dictionary in `main.py`.
 
 ## Email Notifications
 

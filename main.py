@@ -191,8 +191,9 @@ class FlightTracker:
 
             print(f"✅ Email notification sent to {recipient_email}")
 
-        except Exception as e:
-            print(f"❌ Failed to send email: {str(e)}")
+        except Exception:
+            print(f"❌ Failed to send email.")
+            raise
 
 
 def main():

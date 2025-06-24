@@ -1,0 +1,114 @@
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h2 {
+  color: #2c3e50;
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 10px;
+}
+
+h3 {
+  color: #34495e;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.flight-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.flight-list li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.country-container {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin: 15px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.country-header {
+  color: #495057;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #e9ecef;
+  padding: 15px 20px;
+  margin: 0;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.country-flights {
+  padding: 15px 20px;
+}
+
+.flight-item {
+  margin-bottom: 12px;
+  padding: 12px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border-left: 4px solid #3498db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.flight-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.flight-link:hover {
+  text-decoration: underline;
+}
+
+.summary-card {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.summary-card-title {
+  color: #495057;
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.timestamp {
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 30px;
+  text-align: center;
+}
+
+.footer {
+  border-top: 2px solid #dee2e6;
+  margin-top: 30px;
+  padding-top: 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

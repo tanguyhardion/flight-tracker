@@ -1,6 +1,7 @@
 from FlightRadar24 import FlightRadar24API
 import smtplib
 import os
+import csv
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -9,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 class FlightTracker:
     def __init__(self):
         self.fr_api = FlightRadar24API()
+        self.airport_countries = self._load_airport_countries()
         self.airports = {
             "Iraq": [
                 "BGW",  # Baghdad International
@@ -68,6 +70,81 @@ class FlightTracker:
             ],
         }
 
+    def _load_airport_countries(self):
+        """Load airport to country mapping from a CSV file."""
+        airport_countries = {}
+        try:
+            csv_path = os.path.join("data", "airports.csv")
+            with open(csv_path, mode="r", encoding="utf-8") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    airport_code = row.get("code")  # IATA code column
+                    country_code = row.get("country")  # Country code column
+                    if airport_code and country_code:
+                        airport_countries[airport_code] = country_code
+        except Exception as e:
+            print(f"Error loading airport countries: {e}")
+        return airport_countries
+
+    def _get_country_code(self, airport_code):
+        """Get country code for an airport code from the CSV data."""
+        return self.airport_countries.get(airport_code, "Unknown")
+
+    def _get_country_name(self, country_code):
+        """Convert country code to full country name."""
+        country_mapping = {
+            "US": "USA",
+            "IL": "Israel",
+            "IQ": "Iraq",
+            "IR": "Iran",
+            "SY": "Syria",
+            "JO": "Jordan",
+            "LB": "Lebanon",
+            "GB": "United Kingdom",
+            "DE": "Germany",
+            "FR": "France",
+            "ES": "Spain",
+            "IT": "Italy",
+            "NL": "Netherlands",
+            "BE": "Belgium",
+            "CH": "Switzerland",
+            "AT": "Austria",
+            "SE": "Sweden",
+            "NO": "Norway",
+            "DK": "Denmark",
+            "FI": "Finland",
+            "RU": "Russia",
+            "CN": "China",
+            "JP": "Japan",
+            "KR": "South Korea",
+            "IN": "India",
+            "AU": "Australia",
+            "CA": "Canada",
+            "BR": "Brazil",
+            "MX": "Mexico",
+            "AR": "Argentina",
+            "TR": "Turkey",
+            "EG": "Egypt",
+            "SA": "Saudi Arabia",
+            "AE": "UAE",
+            "QA": "Qatar",
+            "KW": "Kuwait",
+            "BH": "Bahrain",
+            "OM": "Oman",
+            # Add more as needed
+        }
+        return country_mapping.get(country_code, country_code)
+
+    def _load_css(self, css_filename):
+        """Load CSS content from a file in the styles folder."""
+        try:
+            css_path = os.path.join("styles", css_filename)
+            with open(css_path, "r", encoding="utf-8") as file:
+                return file.read()
+        except Exception as e:
+            print(f"Error loading CSS file {css_filename}: {e}")
+            return ""
+
     def get_flights_to_country(self, country):
         flights = self.fr_api.get_flights()
         country_flights = []
@@ -107,12 +184,17 @@ class FlightTracker:
                     destination = getattr(flight, "destination_airport_iata", "Unknown")
 
                     # Store detailed info for email
+                    origin_country = self._get_country_code(origin)
+                    destination_country = self._get_country_code(destination)
+
                     flight_details.append(
                         {
                             "call_sign": call_sign,
                             "flight_id": flight_id,
                             "origin": origin,
                             "destination": destination,
+                            "origin_country": origin_country,
+                            "destination_country": destination_country,
                             "country": country,
                         }
                     )
@@ -150,131 +232,70 @@ class FlightTracker:
             message["From"] = sender_email
             message["To"] = recipient_email
 
-            # Build flight list with hyperlinks
-            flight_html_list = []
+            # Build flight list with country containers
+            flight_html_containers = []
             current_country = None
+            country_flights = []
 
             for detail in flight_details:
                 if current_country != detail["country"]:
+                    # If we have accumulated flights for the previous country, create container
+                    if current_country is not None and country_flights:
+                        country_count = len(country_flights)
+                        flight_word = "flight" if country_count == 1 else "flights"
+
+                        container_html = f"""
+                        <div class="country-container">
+                            <div class="country-header">{current_country}: {country_count} {flight_word}</div>
+                            <div class="country-flights">
+                                {''.join(country_flights)}
+                            </div>
+                        </div>"""
+                        flight_html_containers.append(container_html)
+
+                    # Start new country
                     current_country = detail["country"]
-                    country_count = sum(
-                        1 for d in flight_details if d["country"] == current_country
-                    )
-                    flight_word = "flight" if country_count == 1 else "flights"
-                    flight_html_list.append(
-                        f"<li class='country-header'>{current_country}: {country_count} {flight_word}</li>"
-                    )
+                    country_flights = []
 
                 # Create hyperlink to FlightRadar24
                 flight_url = f"https://www.flightradar24.com/{detail['call_sign']}/{detail['flight_id']}"
-                flight_html_list.append(
-                    f"<li class='flight-item'>Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>:<br>&nbsp;&nbsp;&nbsp;&nbsp;{detail['origin']} ({detail['country']}) → {detail['destination']}</li>"
-                )
+                flight_html = f"""
+                <div class="flight-item">
+                    Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;{detail['origin']} ({detail['origin_country']}) → {detail['destination']} ({detail['destination_country']})
+                </div>"""
+                country_flights.append(flight_html)
+
+            # Add the last country container
+            if current_country is not None and country_flights:
+                country_count = len(country_flights)
+                flight_word = "flight" if country_count == 1 else "flights"
+
+                container_html = f"""
+                <div class="country-container">
+                    <div class="country-header">{current_country}: {country_count} {flight_word}</div>
+                    <div class="country-flights">
+                        {''.join(country_flights)}
+                    </div>
+                </div>"""
+                flight_html_containers.append(container_html)
+
+            # Load CSS from external file
+            email_css = self._load_css("email.css")
 
             html_body = f"""
             <html>
             <head>
                 <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        line-height: 1.6;
-                        color: #333;
-                        max-width: 800px;
-                        margin: 0 auto;
-                        padding: 20px;
-                    }}
-                    h2 {{
-                        color: #2c3e50;
-                        border-bottom: 3px solid #3498db;
-                        padding-bottom: 10px;
-                    }}
-                    h3 {{
-                        color: #34495e;
-                        margin-top: 30px;
-                        margin-bottom: 15px;
-                    }}
-                    .flight-list {{
-                        background-color: #f8f9fa;
-                        border: 1px solid #dee2e6;
-                        border-radius: 8px;
-                        padding: 20px;
-                        margin: 20px 0;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        list-style: none;
-                        padding-left: 20px;
-                    }}
-                    .flight-list li {{
-                        margin-bottom: 8px;
-                        line-height: 1.4;
-                    }}
-                    .country-header {{
-                        color: #495057;
-                        font-size: 16px;
-                        font-weight: bold;
-                        margin-bottom: 10px;
-                        margin-top: 20px;
-                        border-bottom: 2px solid #dee2e6;
-                        padding-bottom: 5px;
-                    }}
-                    .flight-item {{
-                        margin-left: 20px;
-                        margin-bottom: 5px;
-                        padding: 8px;
-                        background-color: #ffffff;
-                        border-radius: 4px;
-                        border-left: 3px solid #3498db;
-                    }}
-                    .flight-link {{
-                        color: #007bff;
-                        text-decoration: none;
-                        font-weight: bold;
-                    }}
-                    .flight-link:hover {{
-                        text-decoration: underline;
-                    }}
-                    .summary-card {{
-                        background-color: #f8f9fa;
-                        border: 1px solid #dee2e6;
-                        border-radius: 8px;
-                        padding: 20px;
-                        margin: 20px 0;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        text-align: center;
-                    }}
-                    .summary-card-title {{
-                        color: #495057;
-                        font-size: 20px;
-                        margin-bottom: 10px;
-                        font-weight: bold;
-                    }}
-                    .timestamp {{
-                        color: #6c757d;
-                        font-style: italic;
-                        margin-top: 30px;
-                        text-align: center;
-                    }}
-                    .footer {{
-                        border-top: 2px solid #dee2e6;
-                        margin-top: 30px;
-                        padding-top: 20px;
-                        text-align: center;
-                        color: #6c757d;
-                    }}
-                    a {{
-                        color: #007bff;
-                        text-decoration: none;
-                    }}
-                    a:hover {{
-                        text-decoration: underline;
-                    }}
+                    {email_css}
                 </style>
             </head>
             <body>
                 <h2>🛫 Flight Tracking Alert</h2>
                 
-                <ul class="flight-list">
-                {''.join(flight_html_list)}
-                </ul>
+                <div class="flight-list">
+                {''.join(flight_html_containers)}
+                </div>
                 
                 <div class="timestamp">
                     <strong>Timestamp:</strong> {datetime.now().strftime('%A, %B %d, %Y at %I:%M %p')}

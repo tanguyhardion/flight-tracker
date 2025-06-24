@@ -104,8 +104,7 @@ class FlightTracker:
                             "flight_id": flight_id,
                             "origin": origin,
                             "destination": destination,
-                            "country": country,
-                        }
+                            "country": country,                        }
                     )
 
                     flight_report.append(
@@ -118,22 +117,25 @@ class FlightTracker:
             print("No flights detected - no email sent")
 
     def send_email_notification(self, flight_report, total_flights, flight_details):
-        """Send email notification when flights are detected using Outlook SMTP"""
-        try:
-            # Get email settings from environment variables
-            sender_email = os.getenv("OUTLOOK_EMAIL")
-            sender_password = os.getenv("OUTLOOK_PASSWORD")
+        """Send email notification when flights are detected using Gmail SMTP"""
+        try:            # Get email settings from environment variables
+            sender_email = os.getenv("GMAIL_EMAIL")
+            sender_password = os.getenv("GMAIL_APP_PASSWORD")
             recipient_email = os.getenv("RECIPIENT_EMAIL")
+            print(sender_email, sender_password, recipient_email)
 
             if not sender_email or not sender_password or not recipient_email:
-                print("Email credentials missing - skipping email notification")
+                print("Gmail credentials missing - skipping email notification")
                 print(
-                    "Required: OUTLOOK_EMAIL, OUTLOOK_PASSWORD and RECIPIENT_EMAIL environment variables"
+                    "Required environment variables: GMAIL_EMAIL, GMAIL_APP_PASSWORD, RECIPIENT_EMAIL"
+                )
+                print(
+                    "Note: Use Gmail App Password, not your regular Gmail password"
                 )
                 return
 
-            # Outlook SMTP configuration
-            smtp_server = "smtp-mail.outlook.com"
+            # Gmail SMTP configuration
+            smtp_server = "smtp.gmail.com"
             smtp_port = 587
 
             # Create message
@@ -181,11 +183,9 @@ class FlightTracker:
 
             # Create HTML part
             html_part = MIMEText(html_body, "html")
-            message.attach(html_part)
-
-            # Send email using Outlook SMTP
+            message.attach(html_part)            # Send email using Gmail SMTP
             with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()  # Enable encryption
+                server.starttls()  # Enable encryption (required for Gmail)
                 server.login(sender_email, sender_password)
                 server.send_message(message)
 

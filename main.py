@@ -117,83 +117,83 @@ class FlightTracker:
         else:
             print("No flights detected - no email sent")
 
-    def send_email_notification(self, flight_report, total_flights, flight_details):
-        """Send email notification when flights are detected using Outlook SMTP"""
-        try:
-            # Get email settings from environment variables
-            sender_email = os.getenv("OUTLOOK_EMAIL")
-            sender_password = os.getenv("OUTLOOK_PASSWORD")
-            recipient_email = os.getenv("RECIPIENT_EMAIL")
+def send_email_notification(self, flight_report, total_flights, flight_details):
+    """Send email notification when flights are detected using Outlook SMTP with SSL"""
+    try:
+        # Get email settings from environment variables
+        sender_email = os.getenv("OUTLOOK_EMAIL")
+        sender_password = os.getenv("OUTLOOK_PASSWORD")
+        recipient_email = os.getenv("RECIPIENT_EMAIL")
 
-            if not sender_email or not sender_password or not recipient_email:
-                print("Email credentials missing - skipping email notification")
-                print(
-                    "Required: OUTLOOK_EMAIL, OUTLOOK_PASSWORD and RECIPIENT_EMAIL environment variables"
+        if not sender_email or not sender_password or not recipient_email:
+            print("Email credentials missing - skipping email notification")
+            print(
+                "Required: OUTLOOK_EMAIL, OUTLOOK_PASSWORD and RECIPIENT_EMAIL environment variables"
+            )
+            return
+
+        # Outlook SMTP configuration with SSL
+        smtp_server = "mail.utt.fr"
+        smtp_port = 465  # Changed from 587 to 465 for SSL
+
+        # Create message
+        message = MIMEMultipart("alternative")
+        message["Subject"] = f"Flight Alert: {total_flights} flights detected"
+        message["From"] = sender_email
+        message["To"] = recipient_email
+
+        # Build flight list with hyperlinks
+        flight_html_list = []
+        current_country = None
+
+        for detail in flight_details:
+            if current_country != detail["country"]:
+                current_country = detail["country"]
+                country_count = sum(
+                    1 for d in flight_details if d["country"] == current_country
                 )
-                return
-
-            # Outlook SMTP configuration
-            smtp_server = "mail.utt.fr"
-            smtp_port = 587
-
-            # Create message
-            message = MIMEMultipart("alternative")
-            message["Subject"] = f"Flight Alert: {total_flights} flights detected"
-            message["From"] = sender_email
-            message["To"] = recipient_email
-
-            # Build flight list with hyperlinks
-            flight_html_list = []
-            current_country = None
-
-            for detail in flight_details:
-                if current_country != detail["country"]:
-                    current_country = detail["country"]
-                    country_count = sum(
-                        1 for d in flight_details if d["country"] == current_country
-                    )
-                    flight_html_list.append(
-                        f"<li><strong>{current_country}: {country_count} flights</strong></li>"
-                    )
-
-                # Create hyperlink to FlightRadar24
-                flight_url = f"https://www.flightradar24.com/{detail['call_sign']}/{detail['flight_id']}"
                 flight_html_list.append(
-                    f"<li style='margin-left: 20px;'>Flight <a href='{flight_url}' target='_blank'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} → {detail['destination']}</li>"
+                    f"<li><strong>{current_country}: {country_count} flights</strong></li>"
                 )
 
-            html_body = f"""
-            <html>
-            <body>
-                <h2>🛫 Flight Tracking Alert</h2>
-                <p><strong>Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-                <p><strong>{total_flights} flights detected</strong> to your tracked destinations:</p>
-                
-                <ul>
-                {''.join(flight_html_list)}
-                </ul>
-                
-                <p><em>This is an automated notification from your flight tracking system.</em></p>
-                <p><small>Click on any flight link to view it on FlightRadar24</small></p>
-            </body>
-            </html>
-            """
+            # Create hyperlink to FlightRadar24
+            flight_url = f"https://www.flightradar24.com/{detail['call_sign']}/{detail['flight_id']}"
+            flight_html_list.append(
+                f"<li style='margin-left: 20px;'>Flight <a href='{flight_url}' target='_blank'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} → {detail['destination']}</li>"
+            )
 
-            # Create HTML part
-            html_part = MIMEText(html_body, "html")
-            message.attach(html_part)
+        html_body = f"""
+        <html>
+        <body>
+            <h2>🛫 Flight Tracking Alert</h2>
+            <p><strong>Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>{total_flights} flights detected</strong> to your tracked destinations:</p>
+            
+            <ul>
+            {''.join(flight_html_list)}
+            </ul>
+            
+            <p><em>This is an automated notification from your flight tracking system.</em></p>
+            <p><small>Click on any flight link to view it on FlightRadar24</small></p>
+        </body>
+        </html>
+        """
 
-            # Send email using Outlook SMTP
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()  # Enable encryption
-                server.login(sender_email, sender_password)
-                server.send_message(message)
+        # Create HTML part
+        html_part = MIMEText(html_body, "html")
+        message.attach(html_part)
 
-            print(f"✅ Email notification sent to {recipient_email}")
+        # Send email using Outlook SMTP with SSL
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:  # Changed to SMTP_SSL
+            # Removed server.starttls() - SSL is established from connection start
+            server.login(sender_email, sender_password)
+            server.send_message(message)
 
-        except Exception:
-            print(f"❌ Failed to send email.")
-            raise
+        print(f"✅ Email notification sent to {recipient_email}")
+
+    except Exception:
+        print(f"❌ Failed to send email.")
+        raise
 
 
 def main():

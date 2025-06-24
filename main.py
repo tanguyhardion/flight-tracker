@@ -104,7 +104,8 @@ class FlightTracker:
                             "flight_id": flight_id,
                             "origin": origin,
                             "destination": destination,
-                            "country": country,                        }
+                            "country": country,
+                        }
                     )
 
                     flight_report.append(
@@ -118,7 +119,7 @@ class FlightTracker:
 
     def send_email_notification(self, flight_report, total_flights, flight_details):
         """Send email notification when flights are detected using Gmail SMTP"""
-        try:            # Get email settings from environment variables
+        try:  # Get email settings from environment variables
             sender_email = os.getenv("GMAIL_EMAIL")
             sender_password = os.getenv("GMAIL_APP_PASSWORD")
             recipient_email = os.getenv("RECIPIENT_EMAIL")
@@ -128,9 +129,7 @@ class FlightTracker:
                 print(
                     "Required environment variables: GMAIL_EMAIL, GMAIL_APP_PASSWORD, RECIPIENT_EMAIL"
                 )
-                print(
-                    "Note: Use Gmail App Password, not your regular Gmail password"
-                )
+                print("Note: Use Gmail App Password, not your regular Gmail password")
                 return
 
             # Gmail SMTP configuration
@@ -182,7 +181,7 @@ class FlightTracker:
 
             # Create HTML part
             html_part = MIMEText(html_body, "html")
-            message.attach(html_part)            # Send email using Gmail SMTP
+            message.attach(html_part)  # Send email using Gmail SMTP
             with smtplib.SMTP(smtp_server, smtp_port) as server:
                 server.starttls()  # Enable encryption (required for Gmail)
                 server.login(sender_email, sender_password)

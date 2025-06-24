@@ -168,7 +168,7 @@ class FlightTracker:
                 # Create hyperlink to FlightRadar24
                 flight_url = f"https://www.flightradar24.com/{detail['call_sign']}/{detail['flight_id']}"
                 flight_html_list.append(
-                    f"<li class='flight-item'>Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} → {detail['destination']}</li>"
+                    f"<li class='flight-item'>Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} ({detail['country']}) → {detail['destination']}</li>"
                 )
 
             html_body = f"""

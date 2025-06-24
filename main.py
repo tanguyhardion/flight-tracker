@@ -122,7 +122,6 @@ class FlightTracker:
             sender_email = os.getenv("GMAIL_EMAIL")
             sender_password = os.getenv("GMAIL_APP_PASSWORD")
             recipient_email = os.getenv("RECIPIENT_EMAIL")
-            print(sender_email, sender_password, recipient_email)
 
             if not sender_email or not sender_password or not recipient_email:
                 print("Gmail credentials missing - skipping email notification")

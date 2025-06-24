@@ -118,7 +118,7 @@ class FlightTracker:
             print("No flights detected - no email sent")
 
     def send_email_notification(self, flight_report, total_flights, flight_details):
-        """Send email notification when flights are detected using Outlook SMTP with SSL"""
+        """Send email notification when flights are detected using Outlook SMTP"""
         try:
             # Get email settings from environment variables
             sender_email = os.getenv("OUTLOOK_EMAIL")
@@ -132,9 +132,9 @@ class FlightTracker:
                 )
                 return
 
-            # Outlook SMTP configuration with SSL
-            smtp_server = "mail.utt.fr"
-            smtp_port = 465  # Changed from 587 to 465 for SSL
+            # Outlook SMTP configuration
+            smtp_server = "smtp-mail.outlook.com"
+            smtp_port = 587
 
             # Create message
             message = MIMEMultipart("alternative")
@@ -183,9 +183,9 @@ class FlightTracker:
             html_part = MIMEText(html_body, "html")
             message.attach(html_part)
 
-            # Send email using Outlook SMTP with SSL
-            with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:  # Changed to SMTP_SSL
-                # Removed server.starttls() - SSL is established from connection start
+            # Send email using Outlook SMTP
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()  # Enable encryption
                 server.login(sender_email, sender_password)
                 server.send_message(message)
 

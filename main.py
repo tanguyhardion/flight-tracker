@@ -133,7 +133,7 @@ class FlightTracker:
                 return
 
             # Outlook SMTP configuration
-            smtp_server = "smtp-mail.outlook.com"
+            smtp_server = "mail.utt.fr"
             smtp_port = 587
 
             # Create message

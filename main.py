@@ -18,7 +18,7 @@ class FlightTracker:
                 "NJF",  # Najaf International
                 "OSM",  # Mosul International
                 "KIK",  # Kirkuk International
-                "TQD"   # Al Taqaddum Air Base
+                "TQD",  # Al Taqaddum Air Base
             ],
             "Iran": [
                 "IKA",  # Tehran Imam Khomeini International
@@ -39,7 +39,7 @@ class FlightTracker:
                 "BUZ",  # Bushehr Airport
                 "KSH",  # Kermanshah Airport
                 "HDM",  # Hamadan Airport
-                "SXI"   # Sirri Island Airport
+                "SXI",  # Sirri Island Airport
             ],
             "Israel": [
                 "TLV",  # Ben Gurion International (Tel Aviv)
@@ -47,25 +47,25 @@ class FlightTracker:
                 "ETH",  # Eilat Airport
                 "ETM",  # Ramon Airport (Eilat)
                 "RPN",  # Rosh Pina Airport
-                "VDA"   # Ovda Airport (Eilat)
+                "VDA",  # Ovda Airport (Eilat)
             ],
             "Syria": [
                 "DAM",  # Damascus International
                 "ALP",  # Aleppo International
                 "LTK",  # Latakia International
                 "DEZ",  # Deir ez-Zor Airport
-                "KAC"   # Qamishli Airport
+                "KAC",  # Qamishli Airport
             ],
             "Jordan": [
                 "AMM",  # Queen Alia International (Amman)
                 "ADJ",  # Amman Civil Airport (Marka)
                 "AQJ",  # King Hussein International (Aqaba)
-                "OMF"   # Mafraq Airport
+                "OMF",  # Mafraq Airport
             ],
             "Lebanon": [
                 "BEY",  # Beirut Rafic Hariri International
-                "KYE"   # Rene Mouawad Air Base (Kleiat)
-            ]
+                "KYE",  # Rene Mouawad Air Base (Kleiat)
+            ],
         }
 
     def get_flights_to_country(self, country):
@@ -160,30 +160,130 @@ class FlightTracker:
                     country_count = sum(
                         1 for d in flight_details if d["country"] == current_country
                     )
+                    flight_word = "flight" if country_count == 1 else "flights"
                     flight_html_list.append(
-                        f"<li><strong>{current_country}: {country_count} flights</strong></li>"
+                        f"<li class='country-header'>{current_country}: {country_count} {flight_word}</li>"
                     )
 
                 # Create hyperlink to FlightRadar24
                 flight_url = f"https://www.flightradar24.com/{detail['call_sign']}/{detail['flight_id']}"
                 flight_html_list.append(
-                    f"<li style='margin-left: 20px;'>Flight <a href='{flight_url}' target='_blank'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} → {detail['destination']}</li>"
+                    f"<li class='flight-item'>Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>: {detail['origin']} → {detail['destination']}</li>"
                 )
 
             html_body = f"""
             <html>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }}
+                    h2 {{
+                        color: #2c3e50;
+                        border-bottom: 3px solid #3498db;
+                        padding-bottom: 10px;
+                    }}
+                    h3 {{
+                        color: #34495e;
+                        margin-top: 30px;
+                        margin-bottom: 15px;
+                    }}
+                    .flight-list {{
+                        background-color: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin: 20px 0;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        list-style: none;
+                        padding-left: 20px;
+                    }}
+                    .flight-list li {{
+                        margin-bottom: 8px;
+                        line-height: 1.4;
+                    }}
+                    .country-header {{
+                        color: #495057;
+                        font-size: 16px;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                        margin-top: 20px;
+                        border-bottom: 2px solid #dee2e6;
+                        padding-bottom: 5px;
+                    }}
+                    .flight-item {{
+                        margin-left: 20px;
+                        margin-bottom: 5px;
+                        padding: 8px;
+                        background-color: #ffffff;
+                        border-radius: 4px;
+                        border-left: 3px solid #3498db;
+                    }}
+                    .flight-link {{
+                        color: #007bff;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }}
+                    .flight-link:hover {{
+                        text-decoration: underline;
+                    }}
+                    .summary-card {{
+                        background-color: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin: 20px 0;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        text-align: center;
+                    }}
+                    .summary-card-title {{
+                        color: #495057;
+                        font-size: 20px;
+                        margin-bottom: 10px;
+                        font-weight: bold;
+                    }}
+                    .timestamp {{
+                        color: #6c757d;
+                        font-style: italic;
+                        margin-top: 30px;
+                        text-align: center;
+                    }}
+                    .footer {{
+                        border-top: 2px solid #dee2e6;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        text-align: center;
+                        color: #6c757d;
+                    }}
+                    a {{
+                        color: #007bff;
+                        text-decoration: none;
+                    }}
+                    a:hover {{
+                        text-decoration: underline;
+                    }}
+                </style>
+            </head>
             <body>
                 <h2>🛫 Flight Tracking Alert</h2>
-                <p><strong>{total_flights} flights detected</strong> to your tracked destinations:</p>
                 
-                <ul>
+                <ul class="flight-list">
                 {''.join(flight_html_list)}
                 </ul>
                 
-                <p><strong>Timestamp:</strong> {datetime.now().strftime('%A, %B %d, %Y at %I:%M %p')}</p>
-                <hr style="border: none; border-top: 3px solid #333; margin: 20px 0;">
-                <p><em>This is an automated notification from your flight tracking system.</em></p>
-                <p><small>Click on any flight link to view it on FlightRadar24</small></p>
+                <div class="timestamp">
+                    <strong>Timestamp:</strong> {datetime.now().strftime('%A, %B %d, %Y at %I:%M %p')}
+                </div>
+                
+                <div class="footer">
+                    <p><em>This is an automated notification from your flight tracking system.</em></p>
+                    <p><small>Click on any flight link to view it on FlightRadar24</small></p>
+                </div>
             </body>
             </html>
             """

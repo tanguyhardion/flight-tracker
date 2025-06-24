@@ -2,8 +2,8 @@ name: Flight Tracker
 
 on:
   schedule:
-    # Run every hour
-    - cron: '0 * * * *'
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
   # Allow manual trigger
   workflow_dispatch:
 

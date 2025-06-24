@@ -174,13 +174,14 @@ class FlightTracker:
             <html>
             <body>
                 <h2>🛫 Flight Tracking Alert</h2>
-                <p><strong>Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
                 <p><strong>{total_flights} flights detected</strong> to your tracked destinations:</p>
                 
                 <ul>
                 {''.join(flight_html_list)}
                 </ul>
                 
+                <p><strong>Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <hr style="border: none; border-top: 3px solid #333; margin: 20px 0;">
                 <p><em>This is an automated notification from your flight tracking system.</em></p>
                 <p><small>Click on any flight link to view it on FlightRadar24</small></p>
             </body>

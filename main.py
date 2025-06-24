@@ -180,7 +180,7 @@ class FlightTracker:
                 {''.join(flight_html_list)}
                 </ul>
                 
-                <p><strong>Timestamp:</strong> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+                <p><strong>Timestamp:</strong> {datetime.now().strftime('%A, %B %d, %Y at %I:%M %p')}</p>
                 <hr style="border: none; border-top: 3px solid #333; margin: 20px 0;">
                 <p><em>This is an automated notification from your flight tracking system.</em></p>
                 <p><small>Click on any flight link to view it on FlightRadar24</small></p>

@@ -13,12 +13,12 @@ class FlightTracker:
             "Iraq": [
                 "BGW",  # Baghdad International
                 "BSR",  # Basra International
-                "ESB",  # Erbil International
+                "EBL",  # Erbil International
                 "ISU",  # Sulaymaniyah International
                 "NJF",  # Najaf International
                 "OSM",  # Mosul International
-                "KIK",  # Kirkuk Air Base
-                "TQD",  # Al Taqaddum Air Base
+                "KIK",  # Kirkuk International
+                "TQD"   # Al Taqaddum Air Base
             ],
             "Iran": [
                 "IKA",  # Tehran Imam Khomeini International
@@ -31,11 +31,15 @@ class FlightTracker:
                 "BND",  # Bandar Abbas International
                 "ABD",  # Abadan Airport
                 "KER",  # Kerman Airport
-                "GSM",  # Qasem Soleimani International (Gheshm)
+                "GSM",  # Qasem Soleimani International (Qeshm)
                 "RAS",  # Rasht Airport
                 "SRY",  # Sari Airport
                 "ZBR",  # Chabahar Airport
                 "ZAH",  # Zahedan International
+                "BUZ",  # Bushehr Airport
+                "KSH",  # Kermanshah Airport
+                "HDM",  # Hamadan Airport
+                "SXI"   # Sirri Island Airport
             ],
             "Israel": [
                 "TLV",  # Ben Gurion International (Tel Aviv)
@@ -43,20 +47,25 @@ class FlightTracker:
                 "ETH",  # Eilat Airport
                 "ETM",  # Ramon Airport (Eilat)
                 "RPN",  # Rosh Pina Airport
-                "MSR",  # Tel Nov Air Base (if tracking military)
+                "VDA"   # Ovda Airport (Eilat)
             ],
-            "Qatar": [
-                "DOH",  # Hamad International Airport (Doha)
-                "XJD",  # Al Udeid Air Base (if tracking military)
+            "Syria": [
+                "DAM",  # Damascus International
+                "ALP",  # Aleppo International
+                "LTK",  # Latakia International
+                "DEZ",  # Deir ez-Zor Airport
+                "KAC"   # Qamishli Airport
             ],
-            "Kuwait": [
-                "KWI",  # Kuwait International Airport
-                "KAC",  # Kuwait Air Base (Ali Al Salem)
+            "Jordan": [
+                "AMM",  # Queen Alia International (Amman)
+                "ADJ",  # Amman Civil Airport (Marka)
+                "AQJ",  # King Hussein International (Aqaba)
+                "OMF"   # Mafraq Airport
             ],
-            "Bahrain": [
-                "BAH",  # Bahrain International Airport
-                "NAS",  # Naval Air Station Bahrain (if tracking military)
-            ],
+            "Lebanon": [
+                "BEY",  # Beirut Rafic Hariri International
+                "KYE"   # Rene Mouawad Air Base (Kleiat)
+            ]
         }
 
     def get_flights_to_country(self, country):
@@ -129,7 +138,6 @@ class FlightTracker:
                 print(
                     "Required environment variables: GMAIL_EMAIL, GMAIL_APP_PASSWORD, RECIPIENT_EMAIL"
                 )
-                print("Note: Use Gmail App Password, not your regular Gmail password")
                 return
 
             # Gmail SMTP configuration

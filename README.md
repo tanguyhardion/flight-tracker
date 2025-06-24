@@ -1,142 +1,72 @@
-# Flight Tracker with Email Notifications
+# Flight Tracker
 
-This project automatically tracks flights to specific airports and sends email notifications with clickable FlightRadar24 links when flights are detected.
+A simple Python script that monitors flights to Middle Eastern airports and sends email alerts when flights are detected.
 
-## Features
+## What it does
 
-- Tracks flights to airports anywhere in the world
-- Sends email notifications only when flights are detected (no spam when flight count is 0)
-- Includes flight details with clickable FlightRadar24 links in email notifications
-- Shows both flight call sign and ID for easy identification
-- Runs locally or can be scheduled with task schedulers
+- Monitors flights to airports in Iraq, Iran, Israel, Syria, Jordan, and Lebanon
+- Sends Gmail notifications with flight details and FlightRadar24 links
+- Only sends emails when flights are found (no spam)
 
-## Setup Instructions
+## Quick Setup
 
-### 1. Install Dependencies
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+2. **Set up Gmail credentials**
+   - Use a Gmail account with App Password (not your regular password)
+   - Set these environment variables:
+     ```cmd
+     set GMAIL_EMAIL=your-email@gmail.com
+     set GMAIL_APP_PASSWORD=your-app-password
+     set RECIPIENT_EMAIL=where-to-send-alerts@example.com
+     ```
 
-### 2. Outlook Email Setup
+3. **Run the tracker**
+   ```bash
+   python main.py
+   ```
 
-You'll need to set up environment variables for email notifications:
+## Getting Gmail App Password
 
-**Required Environment Variables:**
-- `OUTLOOK_EMAIL`: Your Outlook/Hotmail email address
-- `OUTLOOK_PASSWORD`: Your Outlook password
-- `RECIPIENT_EMAIL`: Email address to receive notifications
+1. Enable 2FA on your Gmail account
+2. Go to Google Account settings → Security → App passwords
+3. Generate an app password for "Mail"
+4. Use this 16-character password (not your regular Gmail password)
 
-### 3. Setting Environment Variables
+## Tracked Airports
 
-**Option A: Command Prompt (Windows)**
-```cmd
-set OUTLOOK_EMAIL=your-email@outlook.com
-set OUTLOOK_PASSWORD=your-password
-set RECIPIENT_EMAIL=recipient@example.com
-python main.py
-```
+The script monitors flights to these countries:
+- **Iraq**: Baghdad, Basra, Erbil, Sulaymaniyah, Najaf, Mosul, Kirkuk, Al Taqaddum
+- **Iran**: Tehran, Mashhad, Shiraz, Isfahan, Tabriz, Ahvaz, Bandar Abbas, and more
+- **Israel**: Tel Aviv, Haifa, Eilat airports
+- **Syria**: Damascus, Aleppo, Latakia airports  
+- **Jordan**: Amman, Aqaba airports
+- **Lebanon**: Beirut, Kleiat airports
 
-**Option B: PowerShell (Windows)**
-```powershell
-$env:OUTLOOK_EMAIL="your-email@outlook.com"
-$env:OUTLOOK_PASSWORD="your-password"
-$env:RECIPIENT_EMAIL="recipient@example.com"
-python main.py
-```
+## What you'll get
 
-**Option C: System Environment Variables (Permanent)**
-1. Press Win + R, type "sysdm.cpl" and press Enter
-2. Go to "Advanced" tab → "Environment Variables"
-3. Under "User variables", click "New" and add each variable
-4. Restart your command prompt/PowerShell
-
-**Option D: .env file (Optional)**
-Create a `.env` file in the project directory:
-```
-OUTLOOK_EMAIL=your-email@outlook.com
-OUTLOOK_PASSWORD=your-password
-RECIPIENT_EMAIL=recipient@example.com
-```
-
-Then install python-dotenv: `pip install python-dotenv`
-And add to main.py:
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-### 4. Running the Flight Tracker
-
-```bash
-python main.py
-```
-
-## Email Notifications
-
-- Emails are sent **only** when flights are detected
-- If no flights are found, no email is sent (prevents spam)
-- Email includes:
-  - Total number of flights detected
-  - Breakdown by country
-  - **Clickable FlightRadar24 links** for each flight
-  - Flight call signs and IDs
-  - Route information (origin → destination)
-  - Timestamp of the check
-
-## Security Notes
-
-- Never share your email password or commit it to version control
-- Consider using App Passwords if you have 2FA enabled on Outlook
-- Test with a simple email first to ensure your credentials work
+When flights are detected, you'll receive an email with:
+- Flight count by country
+- Clickable FlightRadar24 links for each flight
+- Flight details (call sign, route, etc.)
+- Timestamp of detection
 
 ## Troubleshooting
 
-1. **No emails received**: 
-   - Check console output for error messages
-   - Verify environment variables are set correctly
-   - Ensure your Outlook credentials are correct
+**No emails received?**
+- Check console for error messages
+- Verify Gmail credentials are correct
+- Make sure you're using App Password, not regular password
 
-2. **Authentication errors**: 
-   - Verify your Outlook username and password
-   - Check if you need App Passwords for 2FA accounts
-   - Ensure your Outlook account allows SMTP access
+**API issues?**
+- FlightRadar24 API might be temporarily unavailable
+- Try running again in a few minutes
 
-3. **Connection errors**: 
-   - Check your internet connection
-   - Verify firewall settings allow SMTP connections
-   - Try running the script manually to see detailed error messages
+## Automation
 
-4. **API errors**: The FlightRadar24 API might be rate-limited or temporarily unavailable
-
-## Local Testing
-
-To test locally:
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set environment variables (choose one method above)
-set OUTLOOK_EMAIL=your-email@outlook.com
-set OUTLOOK_PASSWORD=your-password
-set RECIPIENT_EMAIL=recipient@example.com
-
-# Run the script
-python main.py
-```
-
-## Automation Options
-
-You can automate this script using:
-
-- **Windows Task Scheduler**: Schedule to run every 10-30 minutes
-- **Cron (Linux/Mac)**: Add to crontab for regular execution
-- **GitHub Actions**: Set up workflow for cloud execution (requires additional setup)
-
-## Supported Email Providers
-
-Currently configured for **Outlook/Hotmail** SMTP. Can be easily modified for:
-- Gmail (smtp.gmail.com:587)
-- Yahoo (smtp.mail.yahoo.com:587)
-- Other SMTP providers
+Schedule the script to run automatically:
+- **Windows**: Use Task Scheduler to run every 15-30 minutes
+- **Linux/Mac**: Use cron jobs

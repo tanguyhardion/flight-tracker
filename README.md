@@ -4,7 +4,7 @@ A simple Python script that monitors flights to any airport and sends email aler
 
 ## What it does
 
-- Monitors flights to all airports of the countries specified in `countries.txt`
+- Monitors flights to all airports of the countries specified in `tracked_countries.txt`
 - Sends Gmail notifications with flight details and FlightRadar24 links
 - Only sends emails when flights are found (no spam)
 

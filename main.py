@@ -19,7 +19,7 @@ class FlightTracker:
         else:
             self.countries_to_track = countries_to_track
 
-    def _load_countries_from_file(self, filename="countries.txt"):
+    def _load_countries_from_file(self, filename="tracked_countries.txt"):
         """Load country codes from a text file (one per line)."""
         countries = []
         try:
@@ -281,11 +281,11 @@ class FlightTracker:
 
 
 def main():
-    # Now the countries will be loaded from countries.txt automatically
+    # Now the countries will be loaded from tracked_countries.txt automatically
     # You can still override by passing a list if needed:
     # tracker = FlightTracker(["US", "CA", "GB"])  # Custom override
     
-    tracker = FlightTracker()  # Will load from countries.txt
+    tracker = FlightTracker()  # Will load from tracked_countries.txt
     tracker.track_all_flights()
 
 

@@ -6,12 +6,23 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# Try to load dotenv for development environments
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load environment variables from .env file if it exists
+except ImportError:
+    # dotenv not installed, skip loading (production environment)
+    pass
+
 
 class FlightTracker:
     def __init__(self, countries_to_track=None):
         self.fr_api = FlightRadar24API()
         self.airport_countries = self._load_airport_countries()
         self.country_airports = self._load_country_airports()
+        self.country_codes_to_names = self._load_country_names()
+        self.country_names_to_codes = {v: k for k, v in self.country_codes_to_names.items()}
+        self.airport_names = self._load_airport_names()
         
         # Set default countries to track if none provided
         if countries_to_track is None:
@@ -20,20 +31,25 @@ class FlightTracker:
             self.countries_to_track = countries_to_track
 
     def _load_countries_from_file(self, filename="tracked_countries.txt"):
-        """Load country codes from a text file (one per line)."""
+        """Load country names from a text file and convert to country codes."""
         countries = []
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 for line in file:
-                    country_code = line.strip().upper()  # Remove whitespace and convert to uppercase
-                    if country_code:  # Skip empty lines
-                        countries.append(country_code)
+                    country_name = line.strip()  # Remove whitespace
+                    if country_name:  # Skip empty lines
+                        # Convert country name to country code
+                        country_code = self.country_names_to_codes.get(country_name)
+                        if country_code:
+                            countries.append(country_code)
+                        else:
+                            print(f"Warning: Country '{country_name}' not found in countries.csv")
             
             if not countries:
-                print(f"No countries found in {filename}, using default countries")
+                print(f"No valid countries found in {filename}, using default countries")
                 return ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Fallback to default
             
-            print(f"Loaded {len(countries)} countries from {filename}: {countries}")
+            print(f"Loaded {len(countries)} countries from {filename}: {[self.country_codes_to_names.get(code, code) for code in countries]}")
             return countries
             
         except FileNotFoundError:
@@ -78,6 +94,46 @@ class FlightTracker:
             print(f"Error loading country airports: {e}")
         return country_airports
 
+    def _load_country_names(self):
+        """Load country code to name mapping from countries.csv."""
+        country_names = {}
+        try:
+            csv_path = os.path.join("data", "countries.csv")
+            with open(csv_path, mode="r", encoding="utf-8") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    country_code = row.get("alpha-2")  # ISO 2-letter code
+                    country_name = row.get("name")
+                    if country_code and country_name:
+                        country_names[country_code] = country_name
+        except Exception as e:
+            print(f"Error loading country names: {e}")
+        return country_names
+
+    def _load_airport_names(self):
+        """Load airport code to name mapping from airports.csv."""
+        airport_names = {}
+        try:
+            csv_path = os.path.join("data", "airports.csv")
+            with open(csv_path, mode="r", encoding="utf-8") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    airport_code = row.get("code")  # IATA code
+                    airport_name = row.get("name")
+                    if airport_code and airport_name:
+                        airport_names[airport_code] = airport_name
+        except Exception as e:
+            print(f"Error loading airport names: {e}")
+        return airport_names
+
+    def _get_country_name(self, country_code):
+        """Get country name for a country code."""
+        return self.country_codes_to_names.get(country_code, country_code)
+
+    def _get_airport_name(self, airport_code):
+        """Get airport name for an airport code."""
+        return self.airport_names.get(airport_code, airport_code)
+
     def _get_country_code(self, airport_code):
         """Get country code for an airport code from the CSV data."""
         return self.airport_countries.get(airport_code, "Unknown")
@@ -101,10 +157,12 @@ class FlightTracker:
         country_airports = self.country_airports.get(country_code, [])
         
         if not country_airports:
-            print(f"No airports found for country code '{country_code}' in CSV data")
+            country_name = self._get_country_name(country_code)
+            print(f"No airports found for {country_name} ({country_code}) in CSV data")
             return []
 
-        print(f"Tracking {len(country_airports)} airports for {country_code}: {country_airports[:5]}{'...' if len(country_airports) > 5 else ''}")
+        country_name = self._get_country_name(country_code)
+        print(f"Tracking {len(country_airports)} airports for {country_name} ({country_code}): {country_airports[:5]}{'...' if len(country_airports) > 5 else ''}")
 
         for flight in flights:
             destination = getattr(flight, "destination_airport_iata", None)
@@ -117,7 +175,8 @@ class FlightTracker:
         """Track flights to all specified countries."""
         print("Flight Tracking Report")
         print("-" * 30)
-        print(f"Tracking countries: {', '.join(self.countries_to_track)}")
+        tracked_country_names = [self._get_country_name(code) for code in self.countries_to_track]
+        print(f"Tracking countries: {', '.join(tracked_country_names)}")
         print("-" * 30)
 
         flight_report = []
@@ -128,10 +187,11 @@ class FlightTracker:
             flights = self.get_flights_to_country(country_code)
             flight_count = len(flights)
             total_flights += flight_count
-            print(f"→  {country_code}: {flight_count} flights")
+            country_name = self._get_country_name(country_code)
+            print(f"→  {country_name}: {flight_count} flights")
 
             if flight_count > 0:
-                flight_report.append(f"{country_code}: {flight_count} flights")
+                flight_report.append(f"{country_name}: {flight_count} flights")
                 # Add some flight details
                 for i, flight in enumerate(flights):
                     call_sign = getattr(flight, "callsign", "Unknown")
@@ -142,6 +202,10 @@ class FlightTracker:
                     # Store detailed info for email
                     origin_country = self._get_country_code(origin)
                     destination_country = self._get_country_code(destination)
+                    origin_country_name = self._get_country_name(origin_country)
+                    destination_country_name = self._get_country_name(destination_country)
+                    origin_airport_name = self._get_airport_name(origin)
+                    destination_airport_name = self._get_airport_name(destination)
 
                     flight_details.append(
                         {
@@ -151,12 +215,17 @@ class FlightTracker:
                             "destination": destination,
                             "origin_country": origin_country,
                             "destination_country": destination_country,
+                            "origin_country_name": origin_country_name,
+                            "destination_country_name": destination_country_name,
+                            "origin_airport_name": origin_airport_name,
+                            "destination_airport_name": destination_airport_name,
                             "country": country_code,
+                            "country_name": country_name,
                         }
                     )
 
                     flight_report.append(
-                        f"  - Flight {call_sign} (ID: {flight_id}): {origin} → {destination}"
+                        f"  - Flight {call_sign} (ID: {flight_id}): {origin_airport_name} → {destination_airport_name}"
                     )
 
         if total_flights > 0:
@@ -199,10 +268,11 @@ class FlightTracker:
                     if current_country is not None and country_flights:
                         country_count = len(country_flights)
                         flight_word = "flight" if country_count == 1 else "flights"
+                        previous_country_name = self._get_country_name(current_country)
 
                         container_html = f"""
                         <div class="country-container">
-                            <div class="country-header">{current_country}: {country_count} {flight_word}</div>
+                            <div class="country-header">{previous_country_name}: {country_count} {flight_word}</div>
                             <div class="country-flights">
                                 {''.join(country_flights)}
                             </div>
@@ -218,7 +288,9 @@ class FlightTracker:
                 flight_html = f"""
                 <div class="flight-item">
                     Flight <a href='{flight_url}' target='_blank' class='flight-link'>{detail['call_sign']} (ID: {detail['flight_id']})</a>:<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;{detail['origin']} ({detail['origin_country']}) → {detail['destination']} ({detail['destination_country']})
+                    &nbsp;&nbsp;&nbsp;&nbsp;{detail['origin_airport_name']} ({detail['origin_country_name']})<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;{detail['destination_airport_name']} ({detail['destination_country_name']})
                 </div>"""
                 country_flights.append(flight_html)
 
@@ -226,10 +298,11 @@ class FlightTracker:
             if current_country is not None and country_flights:
                 country_count = len(country_flights)
                 flight_word = "flight" if country_count == 1 else "flights"
+                last_country_name = self._get_country_name(current_country)
 
                 container_html = f"""
                 <div class="country-container">
-                    <div class="country-header">{current_country}: {country_count} {flight_word}</div>
+                    <div class="country-header">{last_country_name}: {country_count} {flight_word}</div>
                     <div class="country-flights">
                         {''.join(country_flights)}
                     </div>

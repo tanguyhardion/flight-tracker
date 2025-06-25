@@ -1,10 +1,10 @@
 # Flight Tracker
 
-A simple Python script that monitors flights to Middle Eastern airports and sends email alerts when flights are detected.
+A simple Python script that monitors flights to any airport and sends email alerts when flights are detected.
 
 ## What it does
 
-- Monitors flights to airports in Iraq, Iran, Israel, Syria, Jordan, and Lebanon
+- Monitors flights to all airports of the countries specified in `countries.txt`
 - Sends Gmail notifications with flight details and FlightRadar24 links
 - Only sends emails when flights are found (no spam)
 

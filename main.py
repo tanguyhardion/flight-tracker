@@ -15,9 +15,33 @@ class FlightTracker:
         
         # Set default countries to track if none provided
         if countries_to_track is None:
-            self.countries_to_track = ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Using country codes
+            self.countries_to_track = self._load_countries_from_file()
         else:
             self.countries_to_track = countries_to_track
+
+    def _load_countries_from_file(self, filename="countries.txt"):
+        """Load country codes from a text file (one per line)."""
+        countries = []
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                for line in file:
+                    country_code = line.strip().upper()  # Remove whitespace and convert to uppercase
+                    if country_code:  # Skip empty lines
+                        countries.append(country_code)
+            
+            if not countries:
+                print(f"No countries found in {filename}, using default countries")
+                return ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Fallback to default
+            
+            print(f"Loaded {len(countries)} countries from {filename}: {countries}")
+            return countries
+            
+        except FileNotFoundError:
+            print(f"File {filename} not found, using default countries")
+            return ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Default countries
+        except Exception as e:
+            print(f"Error loading countries from {filename}: {e}")
+            return ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Default countries
 
     def _load_airport_countries(self):
         """Load airport to country mapping from a CSV file."""
@@ -257,14 +281,11 @@ class FlightTracker:
 
 
 def main():
-    # Example usage - specify the country codes you want to track
-    countries_to_track = ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Iraq, Iran, Israel, Syria, Jordan, Lebanon
+    # Now the countries will be loaded from countries.txt automatically
+    # You can still override by passing a list if needed:
+    # tracker = FlightTracker(["US", "CA", "GB"])  # Custom override
     
-    # Or track different countries:
-    # countries_to_track = ["US", "CA", "GB", "FR", "DE"]  # USA, Canada, UK, France, Germany
-    # countries_to_track = ["AE", "SA", "QA", "KW", "BH", "OM"]  # UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman
-    
-    tracker = FlightTracker(countries_to_track)
+    tracker = FlightTracker()  # Will load from countries.txt
     tracker.track_all_flights()
 
 

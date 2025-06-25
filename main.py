@@ -8,67 +8,16 @@ from email.mime.multipart import MIMEMultipart
 
 
 class FlightTracker:
-    def __init__(self):
+    def __init__(self, countries_to_track=None):
         self.fr_api = FlightRadar24API()
         self.airport_countries = self._load_airport_countries()
-        self.airports = {
-            "Iraq": [
-                "BGW",  # Baghdad International
-                "BSR",  # Basra International
-                "EBL",  # Erbil International
-                "ISU",  # Sulaymaniyah International
-                "NJF",  # Najaf International
-                "OSM",  # Mosul International
-                "KIK",  # Kirkuk International
-                "TQD",  # Al Taqaddum Air Base
-            ],
-            "Iran": [
-                "IKA",  # Tehran Imam Khomeini International
-                "THR",  # Tehran Mehrabad International
-                "MHD",  # Mashhad International
-                "SYZ",  # Shiraz International
-                "IFN",  # Isfahan International
-                "TBZ",  # Tabriz International
-                "AWZ",  # Ahvaz International
-                "BND",  # Bandar Abbas International
-                "ABD",  # Abadan Airport
-                "KER",  # Kerman Airport
-                "GSM",  # Qasem Soleimani International (Qeshm)
-                "RAS",  # Rasht Airport
-                "SRY",  # Sari Airport
-                "ZBR",  # Chabahar Airport
-                "ZAH",  # Zahedan International
-                "BUZ",  # Bushehr Airport
-                "KSH",  # Kermanshah Airport
-                "HDM",  # Hamadan Airport
-                "SXI",  # Sirri Island Airport
-            ],
-            "Israel": [
-                "TLV",  # Ben Gurion International (Tel Aviv)
-                "HFA",  # Haifa Airport
-                "ETH",  # Eilat Airport
-                "ETM",  # Ramon Airport (Eilat)
-                "RPN",  # Rosh Pina Airport
-                "VDA",  # Ovda Airport (Eilat)
-            ],
-            "Syria": [
-                "DAM",  # Damascus International
-                "ALP",  # Aleppo International
-                "LTK",  # Latakia International
-                "DEZ",  # Deir ez-Zor Airport
-                "KAC",  # Qamishli Airport
-            ],
-            "Jordan": [
-                "AMM",  # Queen Alia International (Amman)
-                "ADJ",  # Amman Civil Airport (Marka)
-                "AQJ",  # King Hussein International (Aqaba)
-                "OMF",  # Mafraq Airport
-            ],
-            "Lebanon": [
-                "BEY",  # Beirut Rafic Hariri International
-                "KYE",  # Rene Mouawad Air Base (Kleiat)
-            ],
-        }
+        self.country_airports = self._load_country_airports()
+        
+        # Set default countries to track if none provided
+        if countries_to_track is None:
+            self.countries_to_track = ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Using country codes
+        else:
+            self.countries_to_track = countries_to_track
 
     def _load_airport_countries(self):
         """Load airport to country mapping from a CSV file."""
@@ -86,54 +35,28 @@ class FlightTracker:
             print(f"Error loading airport countries: {e}")
         return airport_countries
 
+    def _load_country_airports(self):
+        """Load airports grouped by country code from the CSV file."""
+        country_airports = {}
+        try:
+            csv_path = os.path.join("data", "airports.csv")
+            with open(csv_path, mode="r", encoding="utf-8") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    airport_code = row.get("code")
+                    country_code = row.get("country")
+                    
+                    if airport_code and country_code:
+                        if country_code not in country_airports:
+                            country_airports[country_code] = []
+                        country_airports[country_code].append(airport_code)
+        except Exception as e:
+            print(f"Error loading country airports: {e}")
+        return country_airports
+
     def _get_country_code(self, airport_code):
         """Get country code for an airport code from the CSV data."""
         return self.airport_countries.get(airport_code, "Unknown")
-
-    def _get_country_name(self, country_code):
-        """Convert country code to full country name."""
-        country_mapping = {
-            "US": "USA",
-            "IL": "Israel",
-            "IQ": "Iraq",
-            "IR": "Iran",
-            "SY": "Syria",
-            "JO": "Jordan",
-            "LB": "Lebanon",
-            "GB": "United Kingdom",
-            "DE": "Germany",
-            "FR": "France",
-            "ES": "Spain",
-            "IT": "Italy",
-            "NL": "Netherlands",
-            "BE": "Belgium",
-            "CH": "Switzerland",
-            "AT": "Austria",
-            "SE": "Sweden",
-            "NO": "Norway",
-            "DK": "Denmark",
-            "FI": "Finland",
-            "RU": "Russia",
-            "CN": "China",
-            "JP": "Japan",
-            "KR": "South Korea",
-            "IN": "India",
-            "AU": "Australia",
-            "CA": "Canada",
-            "BR": "Brazil",
-            "MX": "Mexico",
-            "AR": "Argentina",
-            "TR": "Turkey",
-            "EG": "Egypt",
-            "SA": "Saudi Arabia",
-            "AE": "UAE",
-            "QA": "Qatar",
-            "KW": "Kuwait",
-            "BH": "Bahrain",
-            "OM": "Oman",
-            # Add more as needed
-        }
-        return country_mapping.get(country_code, country_code)
 
     def _load_css(self, css_filename):
         """Load CSS content from a file in the styles folder."""
@@ -145,37 +68,46 @@ class FlightTracker:
             print(f"Error loading CSS file {css_filename}: {e}")
             return ""
 
-    def get_flights_to_country(self, country):
+    def get_flights_to_country(self, country_code):
+        """Get flights to a specific country using airports from CSV."""
         flights = self.fr_api.get_flights()
         country_flights = []
 
-        if country not in self.airports:
-            print(f"Country '{country}' not found")
+        # Get airports for this country from CSV data
+        country_airports = self.country_airports.get(country_code, [])
+        
+        if not country_airports:
+            print(f"No airports found for country code '{country_code}' in CSV data")
             return []
+
+        print(f"Tracking {len(country_airports)} airports for {country_code}: {country_airports[:5]}{'...' if len(country_airports) > 5 else ''}")
 
         for flight in flights:
             destination = getattr(flight, "destination_airport_iata", None)
-            if destination and destination in self.airports[country]:
+            if destination and destination in country_airports:
                 country_flights.append(flight)
 
         return country_flights
 
     def track_all_flights(self):
+        """Track flights to all specified countries."""
         print("Flight Tracking Report")
+        print("-" * 30)
+        print(f"Tracking countries: {', '.join(self.countries_to_track)}")
         print("-" * 30)
 
         flight_report = []
         flight_details = []  # Store detailed flight info for email hyperlinks
         total_flights = 0
 
-        for country in self.airports:
-            flights = self.get_flights_to_country(country)
+        for country_code in self.countries_to_track:
+            flights = self.get_flights_to_country(country_code)
             flight_count = len(flights)
             total_flights += flight_count
-            print(f"→  {country}: {flight_count} flights")
+            print(f"→  {country_code}: {flight_count} flights")
 
             if flight_count > 0:
-                flight_report.append(f"{country}: {flight_count} flights")
+                flight_report.append(f"{country_code}: {flight_count} flights")
                 # Add some flight details
                 for i, flight in enumerate(flights):
                     call_sign = getattr(flight, "callsign", "Unknown")
@@ -195,7 +127,7 @@ class FlightTracker:
                             "destination": destination,
                             "origin_country": origin_country,
                             "destination_country": destination_country,
-                            "country": country,
+                            "country": country_code,
                         }
                     )
 
@@ -325,7 +257,14 @@ class FlightTracker:
 
 
 def main():
-    tracker = FlightTracker()
+    # Example usage - specify the country codes you want to track
+    countries_to_track = ["IQ", "IR", "IL", "SY", "JO", "LB"]  # Iraq, Iran, Israel, Syria, Jordan, Lebanon
+    
+    # Or track different countries:
+    # countries_to_track = ["US", "CA", "GB", "FR", "DE"]  # USA, Canada, UK, France, Germany
+    # countries_to_track = ["AE", "SA", "QA", "KW", "BH", "OM"]  # UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman
+    
+    tracker = FlightTracker(countries_to_track)
     tracker.track_all_flights()
 
 

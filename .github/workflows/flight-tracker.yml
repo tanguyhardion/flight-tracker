@@ -2,7 +2,7 @@ name: Flight Tracker
 
 on:
   schedule:
-    - cron: '0 9-23/2 * * *'
+    - cron: '0 0 31 2 *'
   # Allow manual trigger
   workflow_dispatch:
 
